@@ -9,10 +9,10 @@ from support import *
 class Level:
 	def __init__(self):
 
-		# get the display surface
+		# Get the Display Surface
 		self.display_surface = pygame.display.get_surface()
 
-		# sprite groups
+		# Sprite Groups
 		self.all_sprites = CameraGroup()
 		self.collision_sprites = pygame.sprite.Group()
 		self.tree_sprites = pygame.sprite.Group()
@@ -23,7 +23,7 @@ class Level:
 	def setup(self):
 		tmx_data = load_pygame('../data/map.tmx')
 
-		# house 
+		# House
 		for layer in ['HouseFloor', 'HouseFurnitureBottom']:
 			for x, y, surf in tmx_data.get_layer_by_name(layer).tiles():
 				Generic((x * TILE_SIZE,y * TILE_SIZE), surf, self.all_sprites, LAYERS['house bottom'])
@@ -36,20 +36,25 @@ class Level:
 		for x, y, surf in tmx_data.get_layer_by_name('Fence').tiles():
 			Generic((x * TILE_SIZE,y * TILE_SIZE), surf, [self.all_sprites, self.collision_sprites])
 
-		# water 
+		# Water
 		water_frames = import_folder('../graphics/water')
 		for x, y, surf in tmx_data.get_layer_by_name('Water').tiles():
 			Water((x * TILE_SIZE,y * TILE_SIZE), water_frames, self.all_sprites)
 
-		# trees 
+		# Trees
 		for obj in tmx_data.get_layer_by_name('Trees'):
-			Tree((obj.x, obj.y), obj.image, [self.all_sprites, self.collision_sprites, self.tree_sprites], obj.name)
+			Tree(
+				pos = (obj.x, obj.y),
+				surf = obj.image,
+				groups = [self.all_sprites, self.collision_sprites, self.tree_sprites],
+				name = obj.name,
+				player_add = self.player_add)
 
-		# wildflowers 
+		# Wildflowers
 		for obj in tmx_data.get_layer_by_name('Decoration'):
 			WildFlower((obj.x, obj.y), obj.image, [self.all_sprites, self.collision_sprites])
 
-		# collion tiles
+		# Collision Tiles
 		for x, y, surf in tmx_data.get_layer_by_name('Collision').tiles():
 			Generic((x * TILE_SIZE, y * TILE_SIZE), pygame.Surface((TILE_SIZE, TILE_SIZE)), self.collision_sprites)
 
@@ -66,6 +71,11 @@ class Level:
 			surf = pygame.image.load('../graphics/world/ground.png').convert_alpha(),
 			groups = self.all_sprites,
 			z = LAYERS['ground'])
+
+	def player_add(self, item):
+
+		self.player.item_inventory[item] += 1
+
 
 	def run(self,dt):
 		self.display_surface.fill('black')
